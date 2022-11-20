@@ -1,0 +1,19 @@
+﻿<UserControl x:Class="WhitespaceVPN.LoginControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WhitespaceVPN"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0 ">
+        <Label Content="Login" HorizontalContentAlignment="Center"/>
+        <TextBox Width="100" Text="{Binding Login, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+        <Label Content="Password" HorizontalContentAlignment="Center"/>
+        <PasswordBox Name="txtPassword" Width="100"></PasswordBox>
+
+        <Button Content="Login" Margin="5 20" Width="120" 
+                Command="{Binding LoginCommand}" 
+                CommandParameter="{Binding ElementName=txtPassword}"></Button>
+    </StackPanel>
+</UserControl>

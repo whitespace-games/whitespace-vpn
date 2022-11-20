@@ -1,0 +1,54 @@
+﻿<Window x:Class="SystemTrayApp.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:bh="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:local="clr-namespace:WhitespaceVPN"
+        mc:Ignorable="d"
+        ShowInTaskbar="{Binding ShowInTaskbar}"
+        WindowState="{Binding WindowState}"
+        Title="Whitespace VPN" Height="200" Width="300">
+    <Window.DataContext>
+        <local:MainWindowViewModel/>
+    </Window.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <local:NotifyIconWrapper NotifyRequest="{Binding NotifyRequest}">
+            <bh:Interaction.Triggers>
+                <bh:EventTrigger EventName="OpenSelected">
+                    <bh:InvokeCommandAction Command="{Binding NotifyIconOpenCommand}"/>
+                </bh:EventTrigger>
+                <bh:EventTrigger EventName="ExitSelected">
+                    <bh:InvokeCommandAction Command="{Binding NotifyIconExitCommand}"/>
+                </bh:EventTrigger>
+            </bh:Interaction.Triggers>
+        </local:NotifyIconWrapper>
+        <WrapPanel Grid.Row="1" Grid.Column="1">
+            <WrapPanel.DataContext>
+                <local:SshLoginViewModel />
+            </WrapPanel.DataContext>
+
+            <local:LoginControl Visibility="{Binding LoggedIn, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource b2v_converter}, ConverterParameter=false}" />
+            <local:LogoutControl Visibility="{Binding LoggedIn, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource b2v_converter}}" />
+        </WrapPanel>
+    </Grid>
+    <bh:Interaction.Triggers>
+        <bh:EventTrigger EventName="Loaded">
+            <bh:InvokeCommandAction Command="{Binding LoadedCommand}"/>
+        </bh:EventTrigger>
+        <bh:EventTrigger EventName="Closing">
+            <bh:InvokeCommandAction Command="{Binding ClosingCommand}" PassEventArgsToCommand="True"/>
+        </bh:EventTrigger>
+    </bh:Interaction.Triggers>
+</Window>
