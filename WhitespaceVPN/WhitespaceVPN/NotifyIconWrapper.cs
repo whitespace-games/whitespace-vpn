@@ -82,11 +82,14 @@ namespace WhitespaceVPN
 
         private ContextMenuStrip CreateContextMenu()
         {
+            var titleItem = new ToolStripMenuItem("Whitespace VPN");
+            titleItem.Enabled = false;
+            var separator = new ToolStripSeparator();
             var openItem = new ToolStripMenuItem("Open");
             openItem.Click += OpenItemOnClick;
             var exitItem = new ToolStripMenuItem("Exit");
             exitItem.Click += ExitItemOnClick;
-            var contextMenu = new ContextMenuStrip {Items = {openItem, exitItem}};
+            var contextMenu = new ContextMenuStrip {Items = { titleItem, separator, openItem, exitItem }};
             return contextMenu;
         }
 
