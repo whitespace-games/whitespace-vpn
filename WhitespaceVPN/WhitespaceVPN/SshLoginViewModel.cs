@@ -5,6 +5,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 
 using Renci.SshNet;
+using Renci.SshNet.Common;
+using System.Windows;
 
 namespace WhitespaceVPN
 {
@@ -12,12 +14,19 @@ namespace WhitespaceVPN
     {
         private string _login;
         private bool _loggedIn;
+        private NotifyIconWrapper.NotifyRequestRecord? _notifyRequest;
 
         private SshClient sshClient;
         private ForwardedPort forwardedPort;
 
         public ICommand LoginCommand { get; }
         public ICommand LogoutCommand { get; }
+
+        public NotifyIconWrapper.NotifyRequestRecord? NotifyRequest
+        {
+            get => _notifyRequest;
+            set => SetProperty(ref _notifyRequest, value);
+        }
 
         public string Login
         {
@@ -42,10 +51,22 @@ namespace WhitespaceVPN
 
         private void DoLogin(object passwordBox)
         {
-            var obj = passwordBox as PasswordBox;
+            this.sshClient = new SshClient("ssh.mini.pw.edu.pl", Login, (passwordBox as PasswordBox).Password);
 
-            this.sshClient = new SshClient("ssh.mini.pw.edu.pl", Login, obj.Password);
-            this.sshClient.Connect();
+            try
+            {
+                this.sshClient.Connect();
+            }
+            catch (SshAuthenticationException e)
+            {
+                MessageBox.Show($"Authentication failed: {e.Message}");
+                return;
+            }
+            catch (SshConnectionException)
+            {
+                MessageBox.Show($"Connection error.");
+                return;
+            }
 
             this.forwardedPort = new ForwardedPortLocal("127.0.0.1", 4242, "perforce.knur.mini.pw.edu.pl", 1666);
             this.sshClient.AddForwardedPort(forwardedPort);
@@ -58,7 +79,6 @@ namespace WhitespaceVPN
         private void DoLogout()
         {
             this.sshClient.Disconnect();
-            this.forwardedPort.Stop();
             this.sshClient.Dispose();
 
             LoggedIn = false;
