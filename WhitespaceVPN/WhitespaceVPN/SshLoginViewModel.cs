@@ -7,6 +7,8 @@ using System.Windows.Input;
 using Renci.SshNet;
 using Renci.SshNet.Common;
 using System.Windows;
+using System;
+using System.Net.Sockets;
 
 namespace WhitespaceVPN
 {
@@ -14,7 +16,7 @@ namespace WhitespaceVPN
     {
         private string _login;
         private bool _loggedIn;
-        private NotifyIconWrapper.NotifyRequestRecord? _notifyRequest;
+        private string _connectionMessage;
 
         private SshClient sshClient;
         private ForwardedPort forwardedPort;
@@ -22,16 +24,16 @@ namespace WhitespaceVPN
         public ICommand LoginCommand { get; }
         public ICommand LogoutCommand { get; }
 
-        public NotifyIconWrapper.NotifyRequestRecord? NotifyRequest
-        {
-            get => _notifyRequest;
-            set => SetProperty(ref _notifyRequest, value);
-        }
-
         public string Login
         {
             get => _login;
             set { _login = value; OnPropertyChanged(); }
+        }
+
+        public string ConnectionMessage
+        {
+            get => _connectionMessage;
+            set { _connectionMessage = value; OnPropertyChanged(); }
         }
 
         public bool LoggedIn
@@ -68,10 +70,13 @@ namespace WhitespaceVPN
                 return;
             }
 
-            this.forwardedPort = new ForwardedPortLocal("127.0.0.1", 4242, "perforce.knur.mini.pw.edu.pl", 1666);
-            this.sshClient.AddForwardedPort(forwardedPort);
-            
-            this.forwardedPort.Start();
+            if (!this.BindPort())
+            {
+                this.sshClient.Disconnect();
+                this.sshClient.Dispose();
+
+                return;
+            }
 
             LoggedIn = true;
         }
@@ -82,6 +87,42 @@ namespace WhitespaceVPN
             this.sshClient.Dispose();
 
             LoggedIn = false;
+        }
+
+        private bool BindPort()
+        {
+            var localAddress = "127.0.0.1";
+            uint port = 4242;
+            var random = new Random();
+            
+            while (true)
+            {
+                try
+                {
+                    this.forwardedPort = new ForwardedPortLocal(localAddress, port, "perforce.knur.mini.pw.edu.pl", 1666);
+                    this.sshClient.AddForwardedPort(forwardedPort);
+
+                    break;
+                }
+                catch (SshConnectionException)
+                {
+                    port = (uint)random.Next(1024, 49152);
+                }
+            }
+
+            try
+            {
+                this.forwardedPort.Start();
+            }
+            catch (SocketException)
+            {
+                MessageBox.Show("Another instance of app already running and connected");
+                return false;
+            }
+
+            this.ConnectionMessage = $"Use address ssl:{localAddress}:{port} to access Perforce.";
+
+            return true;
         }
     }
 }
