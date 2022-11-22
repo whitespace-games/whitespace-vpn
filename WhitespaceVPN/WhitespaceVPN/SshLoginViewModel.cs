@@ -54,6 +54,7 @@ namespace WhitespaceVPN
         private void DoLogin(object passwordBox)
         {
             this.sshClient = new SshClient("ssh.mini.pw.edu.pl", Login, (passwordBox as PasswordBox).Password);
+            this.sshClient.KeepAliveInterval = TimeSpan.FromMinutes(1);
 
             try
             {
